@@ -18,6 +18,13 @@ class Prisms extends Phaser.Scene {
         //-----------------------------------------------------------------------------------------
         this.backgroundPRI = this.add.image(0, 0, 'backgroundPRI').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height);
         this.prisms = this.add.image(0, 0, 'prisms').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height);
+        this.add.tween({
+            targets: this.prisms,
+            y: 10,
+            ease: 'sine.inout',
+            yoyo: true,
+            repeat: -1
+        });
         this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
         this.score = 0;
         this.scorePlayer = this.add.text(30, 15, this.score, scoreConfig)

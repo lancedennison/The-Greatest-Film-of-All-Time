@@ -20,7 +20,7 @@ let config = {
         default: 'arcade',
         pixelArt: 'true',
         arcade: {
-            debug: true,
+            //debug: true,
             gravity: {
                 x: 0,
                 y: 0

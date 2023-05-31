@@ -17,7 +17,7 @@ class Obelisk extends Phaser.Scene {
         //  UI
         //-----------------------------------------------------------------------------------------
         this.backgroundOB = this.add.image(0, 0, 'backgroundOB').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height).setDepth(0);
-        this.moon = this.add.image(game.config.width/2 - 9, 195, 'moon').setOrigin(0.5, 0.5).setDepth(1);
+        this.moon = this.add.image(game.config.width/2 - 12, 200, 'moon').setOrigin(0.5, 0.5).setDepth(1);
         this.cover = this.add.image(0, 0, 'cover').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height).setDepth(2);
         this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
         this.score = 0;
@@ -37,6 +37,7 @@ class Obelisk extends Phaser.Scene {
             max: (game.config.height - 200)
         }
         this.spawnTimer;
+        this.moonTime = false;
         //-----------------------------------------------------------------------------------------
         //  KEYS
         //-----------------------------------------------------------------------------------------
@@ -75,9 +76,13 @@ class Obelisk extends Phaser.Scene {
         //     callbackScope: this,
         //     loop: true
         // });
+        this.test = new Projectile(this, this.moon.x, this.moon.y, 'bone');
+        this.test2 = new Enemy(this, this.moon.x, this.moon.y, 'bone');
     }
     update() {
-        if(this.moon.y < this.game.config.height/2 + 100)
+        this.test.update();
+        this.test2.update();
+        if(this.moonTime && this.moon.y < this.game.config.height/2 + 58)
         {
             this.moon.setY(this.moon.y + 1);
         }
