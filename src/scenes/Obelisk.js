@@ -20,7 +20,7 @@ class Obelisk extends Phaser.Scene {
         this.moon = this.add.image(game.config.width/2 - 12, 200, 'moon').setOrigin(0.5, 0.5).setDepth(1);
         this.cover = this.add.image(0, 0, 'cover').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height).setDepth(2);
         this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
-        this.score = 0;
+        this.score = 3;
         this.scorePlayer = this.add.text(30, 15, this.score, scoreConfig)
         //-----------------------------------------------------------------------------------------
         //  SETUP VARS

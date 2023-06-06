@@ -84,3 +84,10 @@ let timerConfig = {
     align: 'right',
     fixedWidth: 0
 }
+let wordBotConfig = {
+    fontFamily: 'Cascadia Code',
+    fontSize: '20px',
+    color: '#ffffff',
+    align: 'center',
+    fixedWidth: 0
+}
