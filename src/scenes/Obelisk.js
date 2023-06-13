@@ -17,8 +17,8 @@ class Obelisk extends Phaser.Scene {
         //  UI
         //-----------------------------------------------------------------------------------------
         this.backgroundOB = this.add.image(0, 0, 'backgroundOB').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height).setDepth(0);
-        this.moon = this.add.image(game.config.width/2 - 12, 200, 'moon').setOrigin(0.5, 0.5).setDepth(1);
-        this.cover = this.add.image(0, 0, 'cover').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height).setDepth(2);
+        this.moon = this.add.image(game.config.width/2 - 12, 200, 'moon').setOrigin(0.5, 0.5).setDepth(2).setScale(1.2);
+        //this.cover = this.add.image(0, 0, 'cover').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height).setDepth(2);
         this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
         this.score = 3;
         this.scorePlayer = this.add.text(30, 15, this.score, scoreConfig)
@@ -37,7 +37,7 @@ class Obelisk extends Phaser.Scene {
             max: (game.config.height - 200)
         }
         this.spawnTimer;
-        this.moonTime = false;
+        this.moonTime = true;
         //-----------------------------------------------------------------------------------------
         //  KEYS
         //-----------------------------------------------------------------------------------------
@@ -56,35 +56,32 @@ class Obelisk extends Phaser.Scene {
         //-----------------------------------------------------------------------------------------
         //  !!! GROUPS
         //-----------------------------------------------------------------------------------------
-        // this.groupConfig = {
-        //     collideWorldBounds: false,
-        //     immovable: true,
-        //     velocityX: -250
-        // }
-        // this.redGroup = this.physics.add.group(this.groupConfig);
-        // this.physics.add.collider(this.redGroup);
+        this.groupConfig = {
+            collideWorldBounds: false,
+            runChildUpdate: true,
+            immovable: false,
+        }
+        this.boneGroup = this.physics.add.group(this.groupConfig);
+        this.physics.add.collider(this.boneGroup);
+        this.seekGroup = this.physics.add.group(this.groupConfig);
+        this.physics.add.collider(this.seekGroup);
         //-----------------------------------------------------------------------------------------
         //  SPAWN
         //-----------------------------------------------------------------------------------------
         this.player = new Player(this, game.config.width/3, game.config.height/2, 'monke');
         this.player.setDisplaySize(21.6, 21.6);
 
-        // this.spawn();
-        // this.spawnTimer = this.time.addEvent({
-        //     delay: this.blockER.spawnDelay,
-        //     callback: this.spawn,
-        //     callbackScope: this,
-        //     loop: true
-        // });
-        this.test = new Projectile(this, this.moon.x, this.moon.y, 'bone');
-        this.test2 = new Enemy(this, this.moon.x, this.moon.y, 'bone');
+        const spawnEvent = this.time.addEvent({
+            delay: 1500,   // Delay between each call in milliseconds (1.5 seconds)
+            callback: this.spawn,
+            callbackScope: this,
+            loop: true     // Set to true for continuous repetition
+          });
     }
     update() {
-        this.test.update();
-        this.test2.update();
-        if(this.moonTime && this.moon.y < this.game.config.height/2 + 58)
+        if(this.moonTime && this.moon.y < this.game.config.height/2 + 54)
         {
-            this.moon.setY(this.moon.y + 1);
+            this.moon.setY(this.moon.y + 0.1);
         }
         this.timer.text = Math.floor((this.time.now-this.sceneTime)/1000);
         // this.backgroundOB.tilePositionX += 5;
@@ -97,11 +94,11 @@ class Obelisk extends Phaser.Scene {
             }
             //do death animation
             this.player.setAlpha(0);
-            if(!this.playedSFX)
-            {
-                this.sound.play('loseSfx');
-                this.playedSFX = true;
-            }
+            // if(!this.playedSFX)
+            // {
+            //     this.sound.play('loseSfx');
+            //     this.playedSFX = true;
+            // }
         }
         if (Phaser.Input.Keyboard.JustDown(keyESC)) {
             this.scene.restart();
@@ -110,8 +107,7 @@ class Obelisk extends Phaser.Scene {
             this.scene.start("halScene");
         }
         this.handleKeys();
-        //this.blockSpawner()
-        //this.checkCollision();
+        this.checkCollision();
         this.player.update();
     }
     handleKeys()
@@ -122,37 +118,34 @@ class Obelisk extends Phaser.Scene {
         //check collisions
         if(!this.gameOver)
         {
-            // if()
-            // {
-            //     this.physics.world.collide(this.player, this.redGroup, () => {this.gameOver = true});
-            // }
-        }
-    }
-    scorePass() {
-        // this.score += 10;
-        // this.scorePlayer.setText(this.score);
-        // // this.sound.play('scoreSfx');
-    }
-    blockSpawner() {
-        if(Math.floor((this.time.now-this.sceneTime)/1000) > this.blockER.timeGate)
-        {
-            if(this.blockER.spawnDelay > 2000)
-                this.blockER.spawnDelay -= 500;
-            this.blockER.timeGate += 10;
-            if(this.speed > -700)
-                this.speed -= 75;
-            this.time.addEvent({
-                delay: this.blockER.spawnDelay,
-                callback: this.spawn,
-                callbackScope: this,
-                loop: true
+            this.physics.collide(this.player, this.boneGroup, (plyerObj, boneObj) => 
+            {
+                boneObj.destroy();
+                if(this.score == 0)
+                {
+                    this.gameOver = true;
+                    return;
+                }
+                this.score -= 1;
+                this.scorePlayer.setText(this.score);
+
+            });
+            this.physics.collide(this.player, this.seekGroup, (plyerObj, boneObj) => 
+            {
+                boneObj.destroy();
+                if(this.score == 0)
+                {
+                    this.gameOver = true;
+                    return;
+                }
+                this.score -= 1;
+                this.scorePlayer.setText(this.score);
+
             });
         }
     }
     spawn() {
-        let rC, rH;
-        // rC = Math.floor(Math.random() * 4) + 1;
-        rH = (Math.random() * this.validRange.max) + this.validRange.min;
-        this.redGroup.add(new Block(this, game.config.width + 60, rH, 20, 200, redFILL), true);
+        this.boneGroup.add(new Projectile(this, this.moon.x, this.moon.y, 'bone', this.moon), true);
+        this.seekGroup.add(new Enemy(this, this.moon.x, this.moon.y, 'bone', this.moon), true);
     }
 }

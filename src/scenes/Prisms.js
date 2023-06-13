@@ -6,6 +6,11 @@ class Prisms extends Phaser.Scene {
         // load images/tile sprites
         this.load.image('backgroundPRI', './assets/images/prismsback.png');
         this.load.image('prisms', './assets/images/prisms.png');
+        this.load.image('prism1', './assets/images/prism1.png');
+        this.load.image('prism2', './assets/images/prism2.png');
+        this.load.image('prism3', './assets/images/prism3.png');
+        this.load.image('prism4', './assets/images/prism4.png');
+        this.load.image('prism5', './assets/images/prism5.png');
         this.load.image('monolith', './assets/images/monolith.png');
         this.load.image('pod', './assets/images/pod.png');
         //this.load.image('', './assets/images/.png');
@@ -17,16 +22,15 @@ class Prisms extends Phaser.Scene {
         //  UI
         //-----------------------------------------------------------------------------------------
         this.backgroundPRI = this.add.image(0, 0, 'backgroundPRI').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height);
-        this.prisms = this.add.image(0, 0, 'prisms').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height);
-        this.add.tween({
-            targets: this.prisms,
-            y: 10,
-            ease: 'sine.inout',
-            yoyo: true,
-            repeat: -1
-        });
+        //this.prisms = this.add.image(0, 0, 'prisms').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height).setDepth(1);
+        this.prism1 = this.add.image(200, 200, 'prism1').setOrigin(0.5).setDepth(2).setScale(0.6);
+        this.prism2 = this.add.image(390, 200, 'prism2').setOrigin(0.5).setDepth(2).setScale(0.6);
+        this.prism3 = this.add.image(620, 180, 'prism3').setOrigin(0.5).setDepth(2).setScale(0.6);
+        this.prism4 = this.add.image(850, 200, 'prism4').setOrigin(0.5).setDepth(2).setScale(0.6);
+        this.prism5 = this.add.image(1070, 200, 'prism5').setOrigin(0.5).setDepth(2).setScale(0.6);
+
         this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
-        this.score = 0;
+        this.score = 3;
         this.scorePlayer = this.add.text(30, 15, this.score, scoreConfig)
         //-----------------------------------------------------------------------------------------
         //  SETUP VARS
@@ -61,28 +65,27 @@ class Prisms extends Phaser.Scene {
         //-----------------------------------------------------------------------------------------
         //  !!! GROUPS
         //-----------------------------------------------------------------------------------------
-        // this.groupConfig = {
-        //     collideWorldBounds: false,
-        //     immovable: true,
-        //     velocityX: -250
-        // }
-        // this.redGroup = this.physics.add.group(this.groupConfig);
-        // this.physics.add.collider(this.redGroup);
+        this.groupConfig = {
+            collideWorldBounds: false,
+            runChildUpdate: true,
+            immovable: false,
+            velocity: 100
+        }
+        this.boneGroup = this.physics.add.group(this.groupConfig);
+        this.physics.add.collider(this.boneGroup);
         //-----------------------------------------------------------------------------------------
         //  SPAWN
         //-----------------------------------------------------------------------------------------
         this.player = new Player(this, game.config.width/3, game.config.height/2, 'pod');
         this.player.setDisplaySize(21.6, 21.6);
-        // this.player.setDisplaySize(21.6, 21.6);
-        // this.player.setCircle(75, 33, 33);
 
-        // this.spawn();
-        // this.spawnTimer = this.time.addEvent({
-        //     delay: this.blockER.spawnDelay,
-        //     callback: this.spawn,
-        //     callbackScope: this,
-        //     loop: true
-        // });
+        const spawnEvent = this.time.addEvent({
+            delay: 1500,   // Delay between each call in milliseconds (1.5 seconds)
+            callback: this.spawn,
+            callbackScope: this,
+            loop: true     // Set to true for continuous repetition
+          });
+        this.bone = new Projectile(this, 200, 200, 'monolith', this.prism1);
     }
     update() {
         this.timer.text = Math.floor((this.time.now-this.sceneTime)/1000);
@@ -96,11 +99,11 @@ class Prisms extends Phaser.Scene {
             }
             //do death animation
             this.player.setAlpha(0);
-            if(!this.playedSFX)
-            {
-                this.sound.play('loseSfx');
-                this.playedSFX = true;
-            }
+            // if(!this.playedSFX)
+            // {
+            //     this.sound.play('loseSfx');
+            //     this.playedSFX = true;
+            // }
         }
         if(Phaser.Input.Keyboard.JustDown(keyESC)) {
             this.scene.restart();
@@ -109,8 +112,7 @@ class Prisms extends Phaser.Scene {
             this.scene.start("winScene");
         }
         this.handleKeys();
-        //this.blockSpawner()
-        //this.checkCollision();
+        this.checkCollision();
         this.player.update();
     }
     handleKeys()
@@ -121,37 +123,46 @@ class Prisms extends Phaser.Scene {
         //check collisions
         if(!this.gameOver)
         {
-            // if()
-            // {
-            //     this.physics.world.collide(this.player, this.redGroup, () => {this.gameOver = true});
-            // }
-        }
-    }
-    scorePass() {
-        // this.score += 10;
-        // this.scorePlayer.setText(this.score);
-        // // this.sound.play('scoreSfx');
-    }
-    blockSpawner() {
-        if(Math.floor((this.time.now-this.sceneTime)/1000) > this.blockER.timeGate)
-        {
-            if(this.blockER.spawnDelay > 2000)
-                this.blockER.spawnDelay -= 500;
-            this.blockER.timeGate += 10;
-            if(this.speed > -700)
-                this.speed -= 75;
-            this.time.addEvent({
-                delay: this.blockER.spawnDelay,
-                callback: this.spawn,
-                callbackScope: this,
-                loop: true
+            this.physics.collide(this.player, this.boneGroup, (plyerObj, boneObj) => 
+            {
+                boneObj.destroy();
+                if(this.score == 0)
+                {
+                    this.gameOver = true;
+                    return;
+                }
+                this.score -= 1;
+                this.scorePlayer.setText(this.score);
+
+            });
+            this.physics.collide(this.player, this.seekGroup, (plyerObj, boneObj) => 
+            {
+                boneObj.destroy();
+                if(this.score == 0)
+                {
+                    this.gameOver = true;
+                    return;
+                }
+                this.score -= 1;
+                this.scorePlayer.setText(this.score);
+
             });
         }
     }
+    hit() {
+        if(this.score == 0)
+        {
+            this.gameOver = true;
+            return;
+        }
+        this.score -= 1;
+        this.scorePlayer.setText(this.score);
+    }
     spawn() {
-        let rC, rH;
-        // rC = Math.floor(Math.random() * 4) + 1;
-        rH = (Math.random() * this.validRange.max) + this.validRange.min;
-        this.redGroup.add(new Block(this, game.config.width + 60, rH, 20, 200, redFILL), true);
+        this.boneGroup.add(new Projectile(this, 200, 200, 'monolith', this.prism1), true);
+        this.boneGroup.add(new Projectile(this, 390, 200, 'monolith', this.prism2), true);
+        this.boneGroup.add(new Projectile(this, 620, 180, 'monolith', this.prism3), true);
+        this.boneGroup.add(new Projectile(this, 850, 200, 'monolith', this.prism4), true);
+        this.boneGroup.add(new Projectile(this, 1070, 200, 'monolith', this.prism5), true);
     }
 }

@@ -1,6 +1,6 @@
 // wordBot prefab
 class wordBot extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, width, texture, speed, frame) {
+    constructor(scene, x, y, width, texture, speed, spawnObject, frame) {
         super(scene, x, y, texture, frame);
         // add object to existing scene
         this.scene.add.existing(this);
@@ -9,29 +9,38 @@ class wordBot extends Phaser.Physics.Arcade.Sprite {
         this.seekTime = 0;
         this.speed = speed;
         this.w = width;
+        this.spawnObject = spawnObject;
+        this.behind = true;
         this.create();
     }
     create() {
-        //this.text = this.scene.add.text(this.spawnLocation.x, this.spawnLocation.y, this.word, wordBotConfig).setOrigin(0.5).setDepth(this.depth + 1);
-        //this.body.customBoundsRectangle = this.text.getBounds();
-        //this.setDisplaySize(this.text.width, this.text.height);
-        //this.setAlpha(0);
         this.body.setSize(this.w/4, this.height * 0.8, 0);
         this.setDisplaySize(40, 40);
-        this.setDepth(4);
-        this.scene.time.delayedCall(2000, this.activateBody, [], this);
+        this.setDepth(1);
+        this.body.setVelocityX(-100);
+        this.scene.time.delayedCall(3000, this.activateBody, [], this);
     }
     update() {
-        if(this.x < 0 - this.width ||
+        if(this.seeking && (this.x < 0 - this.width ||
             this.x > game.config.width + this.width ||
             this.y < 0 - this.height ||
-            this.y > game.config.height + this.height) {
-            this.destroy();
-        }
-        //this.text.x = this.x;
-        //this.text.y = this.y;
+            this.y > game.config.height + this.height))
+            {
+                this.seeking = false;
+                this.destroy();
+            }
         if(this.seeking)
+        {
             this.seek();
+        }
+        if(this.behind)
+        {
+            if(this.x < this.spawnObject.x - this.spawnObject.width)
+            {
+                this.setDepth(this.spawnObject.depth + 1);
+                this.behind = false;
+            }
+        }
     }
     activateBody() {
         this.seeking = true;

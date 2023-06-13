@@ -10,7 +10,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     }
     create() {
         this.body.setMaxSpeed(500);
-        this.body.setDrag(500);
+        this.body.setDrag(1000);
         this.body.setVelocity(0);
         this.body.setCollideWorldBounds(true, 0.5, 0.5);
         this.setDepth(5);

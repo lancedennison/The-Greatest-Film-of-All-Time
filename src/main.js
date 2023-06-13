@@ -84,10 +84,10 @@ let timerConfig = {
     align: 'right',
     fixedWidth: 0
 }
-let wordBotConfig = {
+let daveBotConfig = {
     fontFamily: 'Cascadia Code',
-    fontSize: '20px',
-    color: '#ffffff',
-    align: 'center',
+    fontSize: '40px',
+    color: '#EE1D23',
+    align: 'left',
     fixedWidth: 0
 }
