@@ -18,12 +18,13 @@ class HAL extends Phaser.Scene {
     }
     create() {
         this.sceneTime = this.time.now;
-        //-----------------------------------------------------------------------------------------
-        //  UI
-        //-----------------------------------------------------------------------------------------
+        //add images
         this.backgroundHAL = this.add.image(0, 0, 'backgroundHAL').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height);
         this.hal = this.add.image(game.config.width, game.config.height, 'hal').setOrigin(1, 1).setScale(1.4);
         this.half = this.add.image(game.config.width, game.config.height, 'half').setOrigin(1, 1).setScale(1.4).setDepth(2);
+        //-----------------------------------------------------------------------------------------
+        //  UI
+        //-----------------------------------------------------------------------------------------
         //add timer and player health count
         this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
         this.health = 3;
@@ -156,8 +157,7 @@ class HAL extends Phaser.Scene {
         //-----------------------------------------------------------------------------------------
         //  SPAWN
         //-----------------------------------------------------------------------------------------
-        this.player = new Player(this, game.config.width/3, game.config.height/2, 'dave').setDepth(4);;
-        //this.player.setDisplaySize(30, 30);
+        this.player = new Player(this, game.config.width/3, game.config.height/2, 'dave').setDepth(4);
 
         this.physics.add.overlap(this.player, this.banks, (player, bank) =>
         {
@@ -233,7 +233,6 @@ class HAL extends Phaser.Scene {
         {
             this.createSentence(this.script[this.lineNext][0])
             this.lineNext++;
-            
         }
     }
     createSentence(sentence) {

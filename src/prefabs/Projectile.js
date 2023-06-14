@@ -7,6 +7,7 @@ class Projectile extends Phaser.Physics.Arcade.Sprite {
         this.scene.physics.add.existing(this);
         this.spawnObject = spawnObject;
         this.behind = true;
+        this.start = true;
         this.create();
     }
     create() {
@@ -15,14 +16,14 @@ class Projectile extends Phaser.Physics.Arcade.Sprite {
         this.setScale(0.10);
     }
     update() {
-        this.scene.physics.velocityFromAngle(this.angleDeg, 100, this.body.velocity);
-        if(this.x < 0 - this.width ||
-            this.x > game.config.width + this.width ||
-            this.y < 0 - this.height ||
-            this.y > game.config.height + this.height) {
-            this.destroy();
+        if(this.start) {
+            this.start = false;
+            this.scene.physics.velocityFromAngle(this.angleDeg, 100, this.body.velocity);
         }
-        this.angle += 5;
+        this.angle += 5;//rotato potato
+        this.behindCheck();
+    }
+    behindCheck() {
         if(this.behind)
         {
             if(this.x < this.spawnObject.x - this.spawnObject.width/2 ||
@@ -33,6 +34,14 @@ class Projectile extends Phaser.Physics.Arcade.Sprite {
                     this.setDepth(this.spawnObject.depth + 1);
                     this.behind = false;
                 }
+        }
+    }
+    despawn() {
+        if(this.x < 0 - this.width ||
+            this.x > game.config.width + this.width ||
+            this.y < 0 - this.height ||
+            this.y > game.config.height + this.height) {
+            this.destroy();
         }
     }
 }
