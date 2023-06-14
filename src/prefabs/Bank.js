@@ -6,7 +6,7 @@ class Bank extends Phaser.Physics.Arcade.Sprite {
         this.scene.add.existing(this);
         this.scene.physics.add.existing(this);
         this.opa = 1;
-        this.timeLeft = 25;
+        this.timeLeft = 500;
         this.setDisplaySize(this.width, this.height);
         this.setSize(80, 240);
         this.active = 1;
@@ -16,11 +16,11 @@ class Bank extends Phaser.Physics.Arcade.Sprite {
     }
     update() {
     }
-    overlapping() {
+    overlapping(x) {
         if(this.opa > 0)
         {
-            this.timeLeft -= 1;
-            this.opa = this.timeLeft/25;
+            this.timeLeft -= x;
+            this.opa = this.timeLeft/500;
         }
         else {
             this.active = 0;

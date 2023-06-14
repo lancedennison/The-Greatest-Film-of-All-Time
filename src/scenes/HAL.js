@@ -27,8 +27,9 @@ class HAL extends Phaser.Scene {
         //-----------------------------------------------------------------------------------------
         //add timer and player health count
         this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
-        this.health = 3;
-        this.healthPlayer = this.add.text(30, 15, this.health, scoreConfig)
+        this.health = 5;
+        this.healthPlayer = this.add.text(30, 15, this.health, scoreConfig);
+        this.add.image(35, 37, 'dave');
         //-----------------------------------------------------------------------------------------
         //  SETUP VARS
         //-----------------------------------------------------------------------------------------
@@ -36,6 +37,7 @@ class HAL extends Phaser.Scene {
         this.incrementX = 160;
         this.yUP = 200;
         this.yDOWN = 520;
+        this.graderMode = false;
         this.gameOver = false;
         this.winCon = false;
         this.speed = -250;
@@ -82,12 +84,6 @@ class HAL extends Phaser.Scene {
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         keyPLUS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PLUS);
-        // animation config
-        // this.anims.create({
-        //     key: '',
-        //     frames: this.anims.generateFrameNumbers('', { start: 0, end: 9, first: 0}),
-        //     frameRate: 60
-        // });
         //-----------------------------------------------------------------------------------------
         //  !!! GROUPS
         //-----------------------------------------------------------------------------------------
@@ -159,9 +155,10 @@ class HAL extends Phaser.Scene {
         //-----------------------------------------------------------------------------------------
         this.player = new Player(this, game.config.width/3, game.config.height/2, 'dave').setDepth(4);
 
+        this.delta = 1;
         this.physics.add.overlap(this.player, this.banks, (player, bank) =>
         {
-            bank.overlapping();
+            bank.overlapping(this.delta);
         });
     }
     update() {
@@ -197,8 +194,15 @@ class HAL extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(keyESC)) {
             this.scene.restart();
         }
-        if (Phaser.Input.Keyboard.JustDown(keyPLUS)) {
-            this.scene.start("prismsScene");
+        if(Phaser.Input.Keyboard.JustDown(keyPLUS)) {
+            if(this.graderMode)
+                this.scene.start("prismsScene");
+            else{ 
+                this.graderMode = true;
+                this.health = 999;
+                this.delta = 10;
+                this.healthPlayer.setText(this.health);
+            }
         }
     }
     checkCollision() {

@@ -8,7 +8,7 @@ class Obelisk extends Phaser.Scene {
         this.load.image('bone', './assets/images/bone.png');
         this.load.image('backgroundOB', './assets/images/eclipse.jpeg');
         this.load.image('moon', './assets/images/moon.png');
-        // this.load.audio('scoreSfx', './assets/sounds/score.wav');
+        // this.load.audio('healthSfx', './assets/sounds/health.wav');
     }
     create() {
         this.sceneTime = this.time.now;
@@ -19,14 +19,16 @@ class Obelisk extends Phaser.Scene {
         //  UI
         //-----------------------------------------------------------------------------------------
         this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
-        this.score = 99999//3;
-        this.scorePlayer = this.add.text(30, 15, this.score, scoreConfig)
+        this.health = 3;
+        this.healthPlayer = this.add.text(30, 15, this.health, scoreConfig);
+        this.add.image(35, 37, 'monke').setDisplaySize(30, 30);
         //-----------------------------------------------------------------------------------------
         //  SETUP VARS
         //-----------------------------------------------------------------------------------------
         this.gameOver = false;
         this.winCon = false;
         this.gate = true;
+        this.graderMode = false;
         this.speed = -250;
         this.blockER = {
             blockNumber: 0,
@@ -126,8 +128,14 @@ class Obelisk extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(keyESC)) {
             this.scene.restart();
         }
-        if (Phaser.Input.Keyboard.JustDown(keyPLUS)) {
-            this.scene.start("halScene");
+        if(Phaser.Input.Keyboard.JustDown(keyPLUS)) {
+            if(this.graderMode)
+                this.scene.start("halScene");
+            else{ 
+                this.graderMode = true;
+                this.health = 999;
+                this.healthPlayer.setText(this.health);
+            }
         }
     }
     checkCollision() {
@@ -137,25 +145,25 @@ class Obelisk extends Phaser.Scene {
             this.physics.collide(this.player, this.boneGroup, (plyerObj, boneObj) => 
             {
                 boneObj.destroy();
-                if(this.score == 0)
+                if(this.health == 0)
                 {
                     this.gameOver = true;
                     return;
                 }
-                this.score -= 1;
-                this.scorePlayer.setText(this.score);
+                this.health -= 1;
+                this.healthPlayer.setText(this.health);
 
             });
             this.physics.collide(this.player, this.seekGroup, (plyerObj, seekObj) => 
             {
                 seekObj.destroy();
-                if(this.score == 0)
+                if(this.health == 0)
                 {
                     this.gameOver = true;
                     return;
                 }
-                this.score -= 1;
-                this.scorePlayer.setText(this.score);
+                this.health -= 1;
+                this.healthPlayer.setText(this.health);
 
             });
         }
@@ -174,12 +182,12 @@ class Obelisk extends Phaser.Scene {
     }
     winStuff() {
         if(this.winTime) {
-            (this.boneGroup.getChildren()).forEach(bone => {
-                bone.destroy();
-            });
-            (this.seekGroup.getChildren()).forEach(seek => {
-                seek.destroy();
-            });
+            // (this.boneGroup.getChildren()).forEach(bone => {
+            //     bone.destroy();
+            // });
+            // (this.seekGroup.getChildren()).forEach(seek => {
+            //     seek.destroy();
+            // });
             if(this.gate) {
                 this.timeline = this.add.timeline([
                     {

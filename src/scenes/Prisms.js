@@ -14,7 +14,7 @@ class Prisms extends Phaser.Scene {
         this.load.image('monolith', './assets/images/monolith.png');
         this.load.image('pod', './assets/images/pod.png');
         //this.load.image('', './assets/images/.png');
-        // this.load.audio('scoreSfx', './assets/sounds/score.wav');
+        // this.load.audio('healthSfx', './assets/sounds/health.wav');
     }
     create() {
         this.sceneTime = this.time.now;
@@ -25,16 +25,18 @@ class Prisms extends Phaser.Scene {
         this.prism3 = this.add.image(620, 180, 'prism3').setOrigin(0.5).setDepth(2).setScale(0.6);
         this.prism4 = this.add.image(850, 200, 'prism4').setOrigin(0.5).setDepth(2).setScale(0.6);
         this.prism5 = this.add.image(1070, 200, 'prism5').setOrigin(0.5).setDepth(2).setScale(0.6);
+        this.prismSpawnCount = [12, 18, 50, 18, 12];
         //-----------------------------------------------------------------------------------------
         //  UI
         //-----------------------------------------------------------------------------------------
-
         this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
-        this.score = 3;
-        this.scorePlayer = this.add.text(30, 15, this.score, scoreConfig)
+        this.health = 10;
+        this.healthPlayer = this.add.text(30, 15, this.health, scoreConfig);
+        this.add.image(35, 37, 'pod').setDisplaySize(30, 30);
         //-----------------------------------------------------------------------------------------
         //  SETUP VARS
         //-----------------------------------------------------------------------------------------
+        this.graderMode = false;
         this.gameOver = false;
         this.winCon = false;
         this.speed = -250;
@@ -57,12 +59,6 @@ class Prisms extends Phaser.Scene {
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         keyPLUS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PLUS);
-        // animation config
-        // this.anims.create({
-        //     key: '',
-        //     frames: this.anims.generateFrameNumbers('', { start: 0, end: 9, first: 0}),
-        //     frameRate: 60
-        // });
         //-----------------------------------------------------------------------------------------
         //  !!! GROUPS
         //-----------------------------------------------------------------------------------------
@@ -73,7 +69,9 @@ class Prisms extends Phaser.Scene {
             velocity: 100
         }
         this.boneGroup = this.physics.add.group(this.groupConfig);
-        this.physics.add.collider(this.boneGroup);
+        //this.physics.add.collider(this.boneGroup);
+        this.seekGroup = this.physics.add.group(this.groupConfig);
+        //this.physics.add.collider(this.seekGroup);
         //-----------------------------------------------------------------------------------------
         //  SPAWN
         //-----------------------------------------------------------------------------------------
@@ -120,7 +118,13 @@ class Prisms extends Phaser.Scene {
             this.scene.restart();
         }
         if(Phaser.Input.Keyboard.JustDown(keyPLUS)) {
-            this.scene.start("winScene");
+            if(this.graderMode)
+                this.scene.start("winScene");
+            else{ 
+                this.graderMode = true;
+                this.health = 999;
+                this.healthPlayer.setText(this.health);
+            }
         }
     }
     checkCollision() {
@@ -130,45 +134,101 @@ class Prisms extends Phaser.Scene {
             this.physics.collide(this.player, this.boneGroup, (plyerObj, boneObj) => 
             {
                 boneObj.destroy();
-                if(this.score == 0)
+                if(this.health == 0)
                 {
                     this.gameOver = true;
                     return;
                 }
-                this.score -= 1;
-                this.scorePlayer.setText(this.score);
+                this.health -= 1;
+                this.healthPlayer.setText(this.health);
 
             });
             this.physics.collide(this.player, this.seekGroup, (plyerObj, boneObj) => 
             {
                 boneObj.destroy();
-                if(this.score == 0)
+                if(this.health == 0)
                 {
                     this.gameOver = true;
                     return;
                 }
-                this.score -= 1;
-                this.scorePlayer.setText(this.score);
+                this.health -= 1;
+                this.healthPlayer.setText(this.health);
 
             });
         }
     }
     hit() {
-        if(this.score == 0)
+        if(this.health == 0)
         {
             this.gameOver = true;
             return;
         }
-        this.score -= 1;
-        this.scorePlayer.setText(this.score);
+        this.health -= 1;
+        this.healthPlayer.setText(this.health);
     }
     spawn() {
         if(this.winCon)
             return;
-        this.boneGroup.add(new Projectile(this, 200, 200, 'monolith', this.prism1), true);
-        this.boneGroup.add(new Projectile(this, 390, 200, 'monolith', this.prism2), true);
-        this.boneGroup.add(new Projectile(this, 620, 180, 'monolith', this.prism3), true);
-        this.boneGroup.add(new Projectile(this, 850, 200, 'monolith', this.prism4), true);
-        this.boneGroup.add(new Projectile(this, 1070, 200, 'monolith', this.prism5), true);
+        if(this.prismSpawnCount[0] > 0) {
+            this.boneGroup.add(new Projectile(this, 200, 200, 'monolith', this.prism1), true);
+            this.prismSpawnCount[0]--;
+        }
+        else {
+            this.disappear(this.prism1);
+        }
+        if(this.prismSpawnCount[1] > 0) {
+            this.boneGroup.add(new Projectile(this, 390, 200, 'monolith', this.prism2), true);
+            this.prismSpawnCount[1]--;
+        }
+        //-----------------------------------------------------------------------------------------
+        //  THIS THE SPECIAL ONE
+        //-----------------------------------------------------------------------------------------
+        if(this.prismSpawnCount[2] > 30) {
+            this.boneGroup.add(new Projectile(this, 390, 200, 'monolith', this.prism2), true);
+            this.seekGroup.add(new Enemy(this, 620, 180, 'monolith', this.prism3, 90, 500), true);
+            this.boneGroup.add(new Projectile(this, 850, 200, 'monolith', this.prism4), true);
+            this.prismSpawnCount[2]--;
+        }
+        else if(this.prismSpawnCount[2] > 20) {
+            this.disappear(this.prism2);
+            this.disappear(this.prism4);
+            this.seekGroup.add(new Enemy(this, 620, 180, 'monolith', this.prism3, 90 + 45, 7000), true);
+            this.seekGroup.add(new Enemy(this, 620, 180, 'monolith', this.prism3, 90, 500), true);
+            this.seekGroup.add(new Enemy(this, 620, 180, 'monolith', this.prism3, 90 + -45, 7000), true);
+            this.prismSpawnCount[2]--;
+        }
+        else if(this.prismSpawnCount[2] > 0) {
+            this.seekGroup.add(new Enemy(this, 620, 180, 'monolith', this.prism3, 90 + 65, 7000), true);
+            this.seekGroup.add(new Enemy(this, 620, 180, 'monolith', this.prism3, 90 + 25, 7000), true);
+            this.seekGroup.add(new Enemy(this, 620, 180, 'monolith', this.prism3, 90, 500), true);
+            this.seekGroup.add(new Enemy(this, 620, 180, 'monolith', this.prism3, 90 + -25, 7000), true);
+            this.seekGroup.add(new Enemy(this, 620, 180, 'monolith', this.prism3, 90 + -65, 7000), true);
+            this.prismSpawnCount[2]--;
+        }
+        else {
+            this.disappear(this.prism3);
+        }
+        //-----------------------------------------------------------------------------------------
+        //  NO MORE
+        //-----------------------------------------------------------------------------------------
+        if(this.prismSpawnCount[3] > 0) {
+            this.boneGroup.add(new Projectile(this, 850, 200, 'monolith', this.prism4), true);
+            this.prismSpawnCount[3]--;
+        }
+        if(this.prismSpawnCount[4] > 0) {
+            this.boneGroup.add(new Projectile(this, 1070, 200, 'monolith', this.prism5), true);
+            this.prismSpawnCount[4]--;
+        }
+        else {
+            this.disappear(this.prism5);
+        }
+    }
+    disappear(object) {
+        var tween = this.tweens.add({
+            targets: object,
+            alpha: 0,
+            ease: 'Linear',
+            duration: 2000, // Duration in milliseconds
+        });
     }
 }
