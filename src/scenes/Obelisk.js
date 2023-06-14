@@ -118,6 +118,7 @@ class Obelisk extends Phaser.Scene {
         if(this.winCon) {
             this.add.text(game.config.width/2, game.config.height/2, 'You Survived the Encounter with the Monoltih!', menuConfig).setOrigin(0.5).setDepth(2);
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (ESC) to Restart or (+) for the Next Stage', menuConfig).setOrigin(0.5).setDepth(2);
+            this.graderMode = true;
         }
         this.player.update();
         this.handleKeys();

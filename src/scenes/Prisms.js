@@ -38,6 +38,7 @@ class Prisms extends Phaser.Scene {
         //-----------------------------------------------------------------------------------------
         this.graderMode = false;
         this.gameOver = false;
+        this.count = 0;
         this.winCon = false;
         this.speed = -250;
         this.blockER = {
@@ -87,9 +88,12 @@ class Prisms extends Phaser.Scene {
     }
     update() {
         this.timer.text = Math.floor((this.time.now-this.sceneTime)/1000);
+        if(this.timer.text == "80")
+            this.winCon = true;
         if(this.gameOver) {       
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', menuConfig).setOrigin(0.5).setDepth(2);
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (ESC) to Restart or ← for Menu', menuConfig).setOrigin(0.5).setDepth(2);
+            this.graderMode = true;
             if (Phaser.Input.Keyboard.JustDown(keyLEFT)) {
                 this.scene.start("menuScene");
             }
