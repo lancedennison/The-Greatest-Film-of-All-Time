@@ -111,9 +111,16 @@ class Prisms extends Phaser.Scene {
         if(Phaser.Input.Keyboard.JustDown(keyPLUS)) {
             this.scene.start("winScene");
         }
-        this.handleKeys();
-        this.checkCollision();
         this.player.update();
+        this.handleKeys();
+        if(this.winCon == false && this.gameOver == false) {
+            this.checkCollision();
+            this.spawn();
+        }
+        if(this.winCon) {
+            this.add.text(game.config.width/2, game.config.height/2, 'HAL-9000 Decommissioned', menuConfig).setOrigin(0.5).setDepth(2);
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (ESC) to Restart or (+) for the Next Stage', menuConfig).setOrigin(0.5).setDepth(2);
+        }
     }
     handleKeys()
     {

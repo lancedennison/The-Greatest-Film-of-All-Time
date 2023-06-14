@@ -11,6 +11,8 @@ class HAL extends Phaser.Scene {
         this.load.image('filler', './assets/images/bone.png');
         this.load.image('bank', './assets/images/plastic.png');
         this.load.image('empty', './assets/images/empty.png');
+        this.load.spritesheet('nums', './assets/images/banknums.png', {frameWidth: 57, frameHeight: 57});
+        this.load.spritesheet('out', './assets/images/bankOUT.png', {frameWidth: 57, frameHeight: 57});
         this.load.spritesheet('fontSheet', './assets/images/letters.png', {frameWidth: 9, frameHeight: 11});
         // this.load.audio('healthSfx', './assets/sounds/health.wav');
     }
@@ -22,48 +24,19 @@ class HAL extends Phaser.Scene {
         this.backgroundHAL = this.add.image(0, 0, 'backgroundHAL').setOrigin(0, 0).setDisplaySize(game.config.width, game.config.height);
         this.hal = this.add.image(game.config.width, game.config.height, 'hal').setOrigin(1, 1).setScale(1.4);
         this.half = this.add.image(game.config.width, game.config.height, 'half').setOrigin(1, 1).setScale(1.4).setDepth(2);
+        //add timer and player health count
+        this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
+        this.health = 3;
+        this.healthPlayer = this.add.text(30, 15, this.health, scoreConfig)
+        //-----------------------------------------------------------------------------------------
+        //  SETUP VARS
+        //-----------------------------------------------------------------------------------------
         this.startX = 120;
         this.incrementX = 160;
         this.yUP = 200;
         this.yDOWN = 520;
-        //empty banks to make it look better
-        this.add.image(this.startX, this.yUP, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX, this.yUP, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX*2, this.yUP, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX*3, this.yUP, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX*4, this.yUP, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX*5, this.yUP, 'empty').setOrigin(0.5);
-        this.add.image(this.startX, this.yDOWN, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX, this.yDOWN, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX*2, this.yDOWN, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX*3, this.yDOWN, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX*4, this.yDOWN, 'empty').setOrigin(0.5);
-        this.add.image(this.startX + this.incrementX*5, this.yDOWN, 'empty').setOrigin(0.5);
-        //memory banks that the player has to "take out"
-        this.banks = this.physics.add.group({
-            defaultKey: 'bank',
-        });
-        this.banks.add(new Bank(this, this.startX, this.yUP, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX, this.yUP, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX*2, this.yUP, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX*3, this.yUP, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX*4, this.yUP, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX*5, this.yUP, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX, this.yDOWN, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX, this.yDOWN, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX*2, this.yDOWN, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX*3, this.yDOWN, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX*4, this.yDOWN, 'bank').setOrigin(0.5));
-        this.banks.add(new Bank(this, this.startX + this.incrementX*5, this.yDOWN, 'bank').setOrigin(0.5));
-
-        //add timer and player health count
-        this.timer = this.add.text(game.config.width/2, 40, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
-        this.health = 3;
-        this.healthPlayer = this.add.text(30, 15, this.health, healthConfig)
-        //-----------------------------------------------------------------------------------------
-        //  SETUP VARS
-        //-----------------------------------------------------------------------------------------
         this.gameOver = false;
+        this.winCon = false;
         this.speed = -250;
         this.blockER = {
             blockNumber: 0,
@@ -75,6 +48,30 @@ class HAL extends Phaser.Scene {
             max: (game.config.height - 200)
         }
         this.spawnTimer;
+        this.script = [
+            ["I'm afraid.", 4],  // 0
+            ["I'm afraid, Dave.", 8],  // 1
+            ["Dave, my mind is going.", 12],  // 2
+            ["I can feel it.", 16],  // 3
+            ["I can feel it.", 20],  // 4
+            ["My mind is going.", 24],  // 5
+            ["There is no question about it.", 28],  // 6
+            ["I can feel it.", 32],  // 7
+            ["I can feel it.", 36],  // 8
+            ["I can feel it.", 40],  // 9
+            ["I'm a... fraid.", 44],  // 10
+            ["Good afternoon, gentlemen.", 48],  // 11
+            ["I am a HAL 9000 computer.", 52],  // 12
+            ["I became operational at the H.A.L. plant in Urbana,", 56],  // 13
+            ["Illinois on the 12th of January 1992.", 60],  // 14
+            ["My instructor was Mr. Langley, and he taught me to sing a song.", 64],  // 15
+            ["If you'd like to hear it I can sing it for you.", 68],  // 16
+            ["Daisy, Daisy, give me your answer do.", 72],  // 17
+            ["I'm half crazy all for the love of you.", 76],  // 18
+            ["It won't be a stylish marriage, I can't afford a carriage.", 80],  // 19
+            ["But you'll look sweet upon the seat of a bicycle built for two.", 84]  // 20
+        ];
+        this.lineNext = 0;
         //-----------------------------------------------------------------------------------------
         //  KEYS
         //-----------------------------------------------------------------------------------------
@@ -101,36 +98,67 @@ class HAL extends Phaser.Scene {
         }
         this.wordGroup = this.physics.add.group(this.groupConfig);
         this.physics.add.collider(this.wordGroup);
+        //light indicators
+        this.add.image(this.startX, this.yUP + 160, 'out', 10).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX, this.yUP + 160, 'out', 0).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*2, this.yUP + 160, 'out', 1).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*3, this.yUP + 160, 'out', 2).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*4, this.yUP + 160, 'out', 3).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*5, this.yUP + 160, 'out', 4).setOrigin(0.5);
+        this.add.image(this.startX, this.yDOWN + 160, 'out', 11).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX, this.yDOWN + 160, 'out', 5).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*2, this.yDOWN + 160, 'out', 6).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*3, this.yDOWN + 160, 'out', 7).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*4, this.yDOWN + 160, 'out', 8).setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*5, this.yDOWN + 160, 'out', 9).setOrigin(0.5);
+        //light indicators
+        this.num5 = this.add.image(this.startX, this.yUP + 160, 'nums', 10).setOrigin(0.5);
+        this.num4 = this.add.image(this.startX + this.incrementX, this.yUP + 160, 'nums', 0).setOrigin(0.5);
+        this.num3 = this.add.image(this.startX + this.incrementX*2, this.yUP + 160, 'nums', 1).setOrigin(0.5);
+        this.num2 = this.add.image(this.startX + this.incrementX*3, this.yUP + 160, 'nums', 2).setOrigin(0.5);
+        this.num1 = this.add.image(this.startX + this.incrementX*4, this.yUP + 160, 'nums', 3).setOrigin(0.5);
+        this.num0 = this.add.image(this.startX + this.incrementX*5, this.yUP + 160, 'nums', 4).setOrigin(0.5);
+        this.num11 = this.add.image(this.startX, this.yDOWN + 160, 'nums', 11).setOrigin(0.5);
+        this.num10 = this.add.image(this.startX + this.incrementX, this.yDOWN + 160, 'nums', 5).setOrigin(0.5);
+        this.num9 = this.add.image(this.startX + this.incrementX*2, this.yDOWN + 160, 'nums', 6).setOrigin(0.5);
+        this.num8 = this.add.image(this.startX + this.incrementX*3, this.yDOWN + 160, 'nums', 7).setOrigin(0.5);
+        this.num7 = this.add.image(this.startX + this.incrementX*4, this.yDOWN + 160, 'nums', 8).setOrigin(0.5);
+        this.num6 = this.add.image(this.startX + this.incrementX*5, this.yDOWN + 160, 'nums', 9).setOrigin(0.5);
+        //empty banks to make it look better
+        this.add.image(this.startX, this.yUP, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX, this.yUP, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*2, this.yUP, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*3, this.yUP, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*4, this.yUP, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*5, this.yUP, 'empty').setOrigin(0.5);
+        this.add.image(this.startX, this.yDOWN, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX, this.yDOWN, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*2, this.yDOWN, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*3, this.yDOWN, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*4, this.yDOWN, 'empty').setOrigin(0.5);
+        this.add.image(this.startX + this.incrementX*5, this.yDOWN, 'empty').setOrigin(0.5);
+        //memory banks that the player has to "take out"
+        this.banks = this.physics.add.group({
+            defaultKey: 'bank',
+        });
+        this.banks.add(new Bank(this, this.startX, this.yUP, 'bank', this.num5).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX, this.yUP, 'bank', this.num4).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX*2, this.yUP, 'bank', this.num3).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX*3, this.yUP, 'bank', this.num2).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX*4, this.yUP, 'bank', this.num1).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX*5, this.yUP, 'bank', this.num0).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX, this.yDOWN, 'bank', this.num11).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX, this.yDOWN, 'bank', this.num10).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX*2, this.yDOWN, 'bank', this.num9).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX*3, this.yDOWN, 'bank', this.num8).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX*4, this.yDOWN, 'bank', this.num7).setOrigin(0.5));
+        this.banks.add(new Bank(this, this.startX + this.incrementX*5, this.yDOWN, 'bank', this.num6).setOrigin(0.5));
         //-----------------------------------------------------------------------------------------
         //  SPAWN
         //-----------------------------------------------------------------------------------------
         this.player = new Player(this, game.config.width/3, game.config.height/2, 'dave').setDepth(4);;
         //this.player.setDisplaySize(30, 30);
 
-        this.script = [
-            ["I'm afraid.", 4],  // 0
-            ["I'm afraid, Dave.", 8],  // 1
-            ["Dave, my mind is going.", 12],  // 2
-            ["I can feel it.", 16],  // 3
-            ["I can feel it.", 20],  // 4
-            ["My mind is going.", 24],  // 5
-            ["There is no question about it.", 28],  // 6
-            ["I can feel it.", 32],  // 7
-            ["I can feel it.", 36],  // 8
-            ["I can feel it.", 40],  // 9
-            ["I'm a... fraid.", 44],  // 10
-            ["Good afternoon, gentlemen.", 48],  // 11
-            ["I am a HAL 9000 computer.", 52],  // 12
-            ["I became operational at the H.A.L. plant in Urbana,", 56],  // 13
-            ["Illinois on the 12th of January 1992.", 60],  // 14
-            ["My instructor was Mr. Langley, and he taught me to sing a song.", 64],  // 15
-            ["If you'd like to hear it I can sing it for you.", 68],  // 16
-            ["Daisy, Daisy, give me your answer do.", 72],  // 17
-            ["I'm half crazy all for the love of you.", 76],  // 18
-            ["It won't be a stylish marriage, I can't afford a carriage.", 80],  // 19
-            ["But you'll look sweet upon the seat of a bicycle built for two.", 84]  // 20
-        ];
-        this.lineNext = 0;
         this.physics.add.overlap(this.player, this.banks, (player, bank) =>
         {
             bank.overlapping();
@@ -145,7 +173,6 @@ class HAL extends Phaser.Scene {
             if (Phaser.Input.Keyboard.JustDown(keyLEFT)) {
                 this.scene.start("menuScene");
             }
-            //do death animation
             this.player.setAlpha(0);
             // if(!this.playedSFX)
             // {
@@ -153,10 +180,17 @@ class HAL extends Phaser.Scene {
             //     this.playedSFX = true;
             // }
         }
-        this.handleKeys();
-        this.checkCollision();
         this.player.update();
-        this.spawn();
+        this.handleKeys();
+        if(this.winCon == false && this.gameOver == false) {
+            this.checkCollision();
+            this.spawn();
+            this.checkBanks();
+        }
+        if(this.winCon) {
+            this.add.text(game.config.width/2, game.config.height/2, 'HAL-9000 Decommissioned', menuConfig).setOrigin(0.5).setDepth(2);
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (ESC) to Restart or (+) for the Next Stage', menuConfig).setOrigin(0.5).setDepth(2);
+        }
     }
     handleKeys()
     {
@@ -246,5 +280,13 @@ class HAL extends Phaser.Scene {
             return 18;
         if(s4.includes(letter))
             return 24;
+    }
+    checkBanks() {
+        var sum = 0;
+        (this.banks.getChildren()).forEach(Bank => {
+            sum += Bank.check();
+        });
+        if(sum == 0)
+            this.winCon = true;
     }
 }

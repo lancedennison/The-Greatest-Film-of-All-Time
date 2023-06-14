@@ -20,7 +20,7 @@ let config = {
         default: 'arcade',
         pixelArt: 'true',
         arcade: {
-            //debug: true,
+            debug: true,
             gravity: {
                 x: 0,
                 y: 0
@@ -84,8 +84,8 @@ let timerConfig = {
     align: 'right',
     fixedWidth: 0
 }
-let daveBotConfig = {
-    fontFamily: 'Cascadia Code',
+let bankTextConfig = {
+    fontFamily: '',
     fontSize: '40px',
     color: '#EE1D23',
     align: 'left',
